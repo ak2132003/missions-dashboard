@@ -2,46 +2,153 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>لوحة التحكم - المهام</title>
+  <title>🎯 إدارة المهمات</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { background: #111; color: #fff; font-family: Arial; padding: 20px; direction: rtl; text-align: right; }
-    input, button { padding: 6px; margin: 5px; border-radius: 4px; border: none; }
-    input { width: 200px; }
-    button { background: #2196F3; color: white; cursor: pointer; }
-    table { width: 100%; margin-top: 20px; border-collapse: collapse; }
-    th, td { padding: 8px; border: 1px solid #555; }
-    th { background: #333; }
-    tr:nth-child(even) { background: #222; }
+    :root {
+      --main-bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --accent: #58a6ff;
+      --danger: #f85149;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--main-bg);
+      color: var(--text);
+      padding: 20px;
+      direction: rtl;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background-color: var(--card-bg);
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    h2 {
+      color: var(--accent);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    input {
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background-color: #0d1117;
+      color: var(--text);
+      flex: 1;
+      min-width: 150px;
+    }
+
+    button {
+      padding: 10px 16px;
+      border-radius: 6px;
+      border: none;
+      background-color: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background-color: #1f6feb;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    th {
+      background-color: #21262d;
+    }
+
+    tr:nth-child(even) {
+      background-color: #161b22;
+    }
+
+    tr:nth-child(odd) {
+      background-color: #0d1117;
+    }
+
+    .danger {
+      background-color: var(--danger);
+    }
+
+    .danger:hover {
+      background-color: #da3633;
+    }
+
+    @media (max-width: 600px) {
+      .input-group {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      th, td {
+        font-size: 14px;
+        padding: 8px;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
 
-  <h2>🎯 إدارة المهمات (Supabase)</h2>
+  <div class="container">
+    <h2>🎯 إدارة المهمات</h2>
 
-  <div>
-    <input type="text" id="labelInput" placeholder="اسم المهمة (label)">
-    <input type="text" id="valueInput" placeholder="قيمة المهمة (value)">
-    <button onclick="addMission()">➕ إضافة مهمة</button>
+    <div class="input-group">
+      <input type="text" id="labelInput" placeholder="اسم المهمة (label)">
+      <input type="text" id="valueInput" placeholder="قيمة المهمة (value)">
+      <button onclick="addMission()">➕ إضافة مهمة</button>
+    </div>
+
+    <table id="missionsTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>الاسم</th>
+          <th>القيمة</th>
+          <th>تعديل</th>
+          <th>حذف</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
-
-  <table id="missionsTable">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>الاسم</th>
-        <th>القيمة</th>
-        <th>تعديل</th>
-        <th>حذف</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
 
   <script>
     const SUPABASE_URL = 'https://icscyddqnklttdwsaewo.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imljc2N5ZGRxbmtsdHRkd3NhZXdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM3OTg2MzgsImV4cCI6MjA2OTM3NDYzOH0.FcB2H7SbNjqbDq2biTHoFsqUKAC8iQBFHP2CZjih7uc';
-
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     async function fetchMissions() {
@@ -60,7 +167,7 @@
           <td contenteditable onblur="editMission(${row.id}, 'label', this.textContent.trim())">${row.label}</td>
           <td contenteditable onblur="editMission(${row.id}, 'value', this.textContent.trim())">${row.value}</td>
           <td><button onclick="editMissionPrompt(${row.id}, '${row.label}', '${row.value}')">✏️</button></td>
-          <td><button onclick="deleteMission(${row.id})">🗑️</button></td>
+          <td><button class="danger" onclick="deleteMission(${row.id})">🗑️</button></td>
         `;
         tbody.appendChild(tr);
       });
