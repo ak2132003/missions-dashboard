@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>لوحة التحكم - المهام</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <style>
+    body { background: #111; color: #fff; font-family: Arial; padding: 20px; }
+    input, button { padding: 6px; margin: 5px; border-radius: 4px; }
+    table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+    th, td { padding: 8px; border: 1px solid #555; }
+    th { background: #333; }
+    tr:nth-child(even) { background: #222; }
+  </style>
+</head>
+<body>
+
+  <h2>🎯 إدارة المهمات (Supabase)</h2>
+
+  <div>
+    <input type="text" id="labelInput" placeholder="اسم المهمة (label)">
+    <input type="text" id="valueInput" placeholder="قيمة المهمة (value)">
+    <button onclick="addMission()">➕ إضافة مهمة</button>
+  </div>
+
+  <table id="missionsTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>الاسم (label)</th>
+        <th>القيمة (value)</th>
+        <th>تعديل</th>
+        <th>حذف</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const SUPABASE_URL = 'https://icscyddqnklttdwsaewo.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imljc2N5ZGRxbmtsdHRkd3NhZXdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM3OTg2MzgsImV4cCI6MjA2OTM3NDYzOH0.FcB2H7SbNjqbDq2biTHoFsqUKAC8iQBFHP2CZjih7uc';
+
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function fetchMissions() {
+      const { data, error } = await supabase.from('missions').select('*').order('id');
+      if (error) return alert('❌ خطأ في تحميل البيانات');
+      renderTable(data);
+    }
+
+    function renderTable(missions) {
+      const tbody = document.querySelector('#missionsTable tbody');
+      tbody.innerHTML = '';
+      missions.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row.id}</td>
+          <td contenteditable onblur="editMission(${row.id}, 'label', this.textContent.trim())">${row.label}</td>
+          <td contenteditable onblur="editMission(${row.id}, 'value', this.textContent.trim())">${row.value}</td>
+          <td><button onclick="editMissionPrompt(${row.id}, '${row.label}', '${row.value}')">✏️</button></td>
+          <td><button onclick="deleteMission(${row.id})">🗑️</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function addMission() {
+      const label = document.getElementById('labelInput').value.trim();
+      const value = document.getElementById('valueInput').value.trim();
+      if (!label || !value) return alert('⚠️ يجب ملء الحقول');
+
+      const { error } = await supabase.from('missions').insert([{ label, value }]);
+      if (error) return alert('❌ فشل الإضافة');
+      fetchMissions();
+      document.getElementById('labelInput').value = '';
+      document.getElementById('valueInput').value = '';
+    }
+
+    async function editMission(id, column, newValue) {
+      const { error } = await supabase.from('missions').update({ [column]: newValue }).eq('id', id);
+      if (error) alert('❌ فشل التعديل');
+    }
+
+    async function deleteMission(id) {
+      if (!confirm('❌ هل أنت متأكد من حذف هذه المهمة؟')) return;
+      const { error } = await supabase.from('missions').delete().eq('id', id);
+      if (error) return alert('❌ فشل الحذف');
+      fetchMissions();
+    }
+
+    function editMissionPrompt(id, currentLabel, currentValue) {
+      const label = prompt("تعديل الاسم:", currentLabel);
+      const value = prompt("تعديل القيمة:", currentValue);
+      if (!label || !value) return;
+
+      supabase.from('missions').update({ label, value }).eq('id', id).then(({ error }) => {
+        if (error) return alert('❌ فشل التعديل');
+        fetchMissions();
+      });
+    }
+
+    fetchMissions();
+  </script>
+</body>
+</html>
