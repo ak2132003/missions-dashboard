@@ -2,8 +2,9 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>لوحة إدارة المهمات</title>
+  <title>🎯 لوحة إدارة المهمات</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     :root {
@@ -103,6 +104,10 @@
       background-color: #c62828;
     }
 
+    .sortable-handle {
+      cursor: grab;
+    }
+
     @media (max-width: 600px) {
       .input-group {
         flex-direction: column;
@@ -126,19 +131,20 @@
       <input type="text" id="labelInput" placeholder="اسم المهمة (label)">
       <input type="text" id="valueInput" placeholder="قيمة المهمة (value)">
       <button onclick="addMission()">➕ إضافة</button>
+      <button onclick="saveOrder()">💾 حفظ الترتيب</button>
     </div>
 
     <table id="missionsTable">
       <thead>
         <tr>
-          <th>ID</th>
+          <th>↕️</th>
           <th>الاسم</th>
           <th>القيمة</th>
           <th>تعديل</th>
           <th>حذف</th>
         </tr>
       </thead>
-      <tbody></tbody>
+      <tbody id="missionsBody"></tbody>
     </table>
   </div>
 
@@ -148,24 +154,30 @@
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     async function fetchMissions() {
-      const { data, error } = await supabase.from('missions').select('*').order('id');
+      const { data, error } = await supabase.from('missions').select('*').order('order', { ascending: true });
       if (error) return alert('❌ خطأ في تحميل البيانات');
       renderTable(data);
     }
 
     function renderTable(missions) {
-      const tbody = document.querySelector('#missionsTable tbody');
+      const tbody = document.getElementById('missionsBody');
       tbody.innerHTML = '';
       missions.forEach(row => {
         const tr = document.createElement('tr');
+        tr.setAttribute('data-id', row.id);
         tr.innerHTML = `
-          <td>${row.id}</td>
+          <td class="sortable-handle">⠿</td>
           <td contenteditable onblur="editMission(${row.id}, 'label', this.textContent.trim())">${row.label}</td>
           <td contenteditable onblur="editMission(${row.id}, 'value', this.textContent.trim())">${row.value}</td>
           <td><button onclick="editMissionPrompt(${row.id}, '${row.label}', '${row.value}')">✏️</button></td>
           <td><button class="danger" onclick="deleteMission(${row.id})">🗑️</button></td>
         `;
         tbody.appendChild(tr);
+      });
+
+      Sortable.create(tbody, {
+        handle: '.sortable-handle',
+        animation: 150
       });
     }
 
@@ -174,23 +186,24 @@
       const value = document.getElementById('valueInput').value.trim();
       if (!label || !value) return alert('⚠️ يجب ملء الحقول');
 
-      const { error } = await supabase.from('missions').insert([{ label, value }]);
+      // Get max order value
+      const { data: maxOrderData } = await supabase
+        .from('missions')
+        .select('order')
+        .order('order', { ascending: false })
+        .limit(1);
+      const newOrder = maxOrderData?.[0]?.order + 1 || 1;
+
+      const { error } = await supabase.from('missions').insert([{ label, value, order: newOrder }]);
       if (error) return alert('❌ فشل الإضافة');
-      fetchMissions();
       document.getElementById('labelInput').value = '';
       document.getElementById('valueInput').value = '';
+      fetchMissions();
     }
 
     async function editMission(id, column, newValue) {
       const { error } = await supabase.from('missions').update({ [column]: newValue }).eq('id', id);
       if (error) alert('❌ فشل التعديل');
-    }
-
-    async function deleteMission(id) {
-      if (!confirm('هل تريد حذف هذه المهمة؟')) return;
-      const { error } = await supabase.from('missions').delete().eq('id', id);
-      if (error) return alert('❌ فشل الحذف');
-      fetchMissions();
     }
 
     function editMissionPrompt(id, currentLabel, currentValue) {
@@ -202,6 +215,23 @@
         if (error) return alert('❌ فشل التعديل');
         fetchMissions();
       });
+    }
+
+    async function deleteMission(id) {
+      if (!confirm('هل تريد حذف هذه المهمة؟')) return;
+      const { error } = await supabase.from('missions').delete().eq('id', id);
+      if (error) return alert('❌ فشل الحذف');
+      fetchMissions();
+    }
+
+    async function saveOrder() {
+      const rows = document.querySelectorAll('#missionsBody tr');
+      for (let i = 0; i < rows.length; i++) {
+        const id = rows[i].getAttribute('data-id');
+        await supabase.from('missions').update({ order: i + 1 }).eq('id', id);
+      }
+      alert('✅ تم حفظ الترتيب!');
+      fetchMissions();
     }
 
     fetchMissions();
