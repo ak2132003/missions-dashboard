@@ -2,58 +2,56 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>🎯 إدارة المهمات</title>
+  <title>لوحة إدارة المهمات</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     :root {
-      --main-bg: #0d1117;
-      --card-bg: #161b22;
-      --border: #30363d;
-      --text: #c9d1d9;
-      --accent: #58a6ff;
-      --danger: #f85149;
+      --bg: #f5f9ff;
+      --card: #ffffff;
+      --border: #d0d7de;
+      --text: #1a1a1a;
+      --accent: #2a7ae2;
+      --danger: #e63946;
     }
 
     body {
       margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--main-bg);
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--bg);
       color: var(--text);
       padding: 20px;
       direction: rtl;
     }
 
     .container {
-      max-width: 800px;
+      max-width: 850px;
       margin: auto;
-      background-color: var(--card-bg);
+      background: var(--card);
       padding: 20px;
       border-radius: 10px;
       border: 1px solid var(--border);
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
     }
 
     h2 {
       color: var(--accent);
-      margin-bottom: 20px;
       text-align: center;
+      margin-bottom: 25px;
     }
 
     .input-group {
       display: flex;
-      gap: 10px;
       flex-wrap: wrap;
-      justify-content: center;
+      gap: 10px;
       margin-bottom: 20px;
+      justify-content: center;
     }
 
     input {
       padding: 10px;
       border-radius: 6px;
       border: 1px solid var(--border);
-      background-color: #0d1117;
-      color: var(--text);
       flex: 1;
       min-width: 150px;
     }
@@ -65,11 +63,11 @@
       background-color: var(--accent);
       color: #fff;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background 0.2s ease;
     }
 
     button:hover {
-      background-color: #1f6feb;
+      background-color: #1a5bbf;
     }
 
     table {
@@ -79,57 +77,55 @@
     }
 
     th, td {
-      padding: 10px;
+      padding: 12px;
       border: 1px solid var(--border);
       text-align: center;
     }
 
     th {
-      background-color: #21262d;
+      background-color: #e3f2fd;
     }
 
     tr:nth-child(even) {
-      background-color: #161b22;
+      background-color: #f9fbfd;
     }
 
     tr:nth-child(odd) {
-      background-color: #0d1117;
+      background-color: #ffffff;
     }
 
     .danger {
       background-color: var(--danger);
+      color: white;
     }
 
     .danger:hover {
-      background-color: #da3633;
+      background-color: #c62828;
     }
 
     @media (max-width: 600px) {
       .input-group {
         flex-direction: column;
-        align-items: stretch;
-      }
-
-      th, td {
-        font-size: 14px;
-        padding: 8px;
       }
 
       button {
         width: 100%;
       }
+
+      th, td {
+        font-size: 14px;
+      }
     }
   </style>
 </head>
 <body>
-
   <div class="container">
-    <h2>🎯 إدارة المهمات</h2>
+    <h2>🎯 لوحة إدارة المهمات</h2>
 
     <div class="input-group">
       <input type="text" id="labelInput" placeholder="اسم المهمة (label)">
       <input type="text" id="valueInput" placeholder="قيمة المهمة (value)">
-      <button onclick="addMission()">➕ إضافة مهمة</button>
+      <button onclick="addMission()">➕ إضافة</button>
     </div>
 
     <table id="missionsTable">
@@ -191,7 +187,7 @@
     }
 
     async function deleteMission(id) {
-      if (!confirm('❌ هل أنت متأكد من حذف هذه المهمة؟')) return;
+      if (!confirm('هل تريد حذف هذه المهمة؟')) return;
       const { error } = await supabase.from('missions').delete().eq('id', id);
       if (error) return alert('❌ فشل الحذف');
       fetchMissions();
