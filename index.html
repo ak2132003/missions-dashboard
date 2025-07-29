@@ -5,8 +5,10 @@
   <title>لوحة التحكم - المهام</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <style>
-    body { background: #111; color: #fff; font-family: Arial; padding: 20px; }
-    input, button { padding: 6px; margin: 5px; border-radius: 4px; }
+    body { background: #111; color: #fff; font-family: Arial; padding: 20px; direction: rtl; text-align: right; }
+    input, button { padding: 6px; margin: 5px; border-radius: 4px; border: none; }
+    input { width: 200px; }
+    button { background: #2196F3; color: white; cursor: pointer; }
     table { width: 100%; margin-top: 20px; border-collapse: collapse; }
     th, td { padding: 8px; border: 1px solid #555; }
     th { background: #333; }
@@ -27,8 +29,8 @@
     <thead>
       <tr>
         <th>ID</th>
-        <th>الاسم (label)</th>
-        <th>القيمة (value)</th>
+        <th>الاسم</th>
+        <th>القيمة</th>
         <th>تعديل</th>
         <th>حذف</th>
       </tr>
@@ -40,7 +42,7 @@
     const SUPABASE_URL = 'https://icscyddqnklttdwsaewo.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imljc2N5ZGRxbmtsdHRkd3NhZXdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM3OTg2MzgsImV4cCI6MjA2OTM3NDYzOH0.FcB2H7SbNjqbDq2biTHoFsqUKAC8iQBFHP2CZjih7uc';
 
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     async function fetchMissions() {
       const { data, error } = await supabase.from('missions').select('*').order('id');
